@@ -1,0 +1,791 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Smart Sustainable Garden</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <style>
+    :root {
+      --primary: #2e7d32;
+      --primary-light: #e8f5e9;
+      --primary-dark: #1b5e20;
+      --accent: #81c784;
+      --bg: #f4f8f4;
+      --card-bg: #ffffff;
+      --text-main: #1f2937;
+      --text-muted: #6b7280;
+      --danger: #ef4444;
+      --danger-bg: #fef2f2;
+      --warning: #f59e0b;
+      --info: #0ea5e9;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      background-color: var(--bg);
+      color: var(--text-main);
+      display: flex;
+      justify-content: center;
+      min-height: 100vh;
+    }
+
+    .app-container {
+      width: 100%;
+      max-width: 480px;
+      background: var(--card-bg);
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05);
+      position: relative;
+    }
+
+    /* Top App Bar */
+    header {
+      background: var(--primary);
+      color: white;
+      padding: 16px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+
+    .header-info h1 {
+      font-size: 1.15rem;
+      font-weight: 700;
+    }
+
+    .header-status {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.75rem;
+      margin-top: 2px;
+    }
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #ef4444;
+      transition: background 0.3s ease;
+    }
+
+    .status-dot.online {
+      background: #4ade80;
+      box-shadow: 0 0 8px #4ade80;
+    }
+
+    .refresh-btn {
+      background: rgba(255, 255, 255, 0.2);
+      border: none;
+      color: white;
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      cursor: pointer;
+      display: grid;
+      place-items: center;
+      transition: transform 0.2s;
+    }
+
+    .refresh-btn:active {
+      transform: scale(0.9);
+    }
+
+    /* Main Content Area */
+    main {
+      flex: 1;
+      padding: 16px;
+      padding-bottom: 90px;
+      overflow-y: auto;
+      background: var(--bg);
+    }
+
+    .tab-view {
+      display: none;
+    }
+
+    .tab-view.active {
+      display: block;
+      animation: fadeIn 0.2s ease-in-out;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(4px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Alert Banner */
+    .alert-banner {
+      background: var(--danger-bg);
+      border: 1px solid #fecaca;
+      border-radius: 12px;
+      padding: 12px 14px;
+      color: #991b1b;
+      display: none;
+      align-items: center;
+      gap: 12px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      margin-bottom: 14px;
+    }
+
+    /* Quick Overview */
+    .overview-card {
+      background: white;
+      border: 1px solid #e5e7eb;
+      border-radius: 14px;
+      padding: 14px;
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      margin-bottom: 14px;
+    }
+
+    .overview-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .icon-badge {
+      width: 40px;
+      height: 40px;
+      border-radius: 10px;
+      display: grid;
+      place-items: center;
+      font-size: 1.1rem;
+    }
+
+    .icon-badge.amber { background: #fef3c7; color: #d97706; }
+    .icon-badge.orange { background: #ffedd5; color: #ea580c; }
+    .icon-badge.teal { background: #ccfbf1; color: #0d9488; }
+    .icon-badge.blue { background: #e0f2fe; color: #0284c7; }
+
+    /* Telemetry Grid */
+    .metrics-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    .metric-card {
+      background: white;
+      border-radius: 14px;
+      padding: 14px;
+      border: 1px solid #e5e7eb;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      height: 125px;
+    }
+
+    .metric-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      color: var(--text-muted);
+      font-size: 0.75rem;
+      font-weight: 600;
+    }
+
+    .metric-value {
+      font-size: 1.45rem;
+      font-weight: 700;
+      color: var(--text-main);
+    }
+
+    .progress-track {
+      background: #f3f4f6;
+      height: 6px;
+      border-radius: 4px;
+      overflow: hidden;
+    }
+
+    .progress-fill {
+      height: 100%;
+      border-radius: 4px;
+      width: 0%;
+      transition: width 0.4s ease, background-color 0.3s;
+    }
+
+    /* Controls Panel */
+    .control-card {
+      background: white;
+      border-radius: 14px;
+      padding: 16px;
+      border: 1px solid #e5e7eb;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+
+    .control-info {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .control-titles h3 {
+      font-size: 0.9rem;
+      font-weight: 600;
+    }
+
+    .control-titles p {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+    }
+
+    /* Switch Component */
+    .switch {
+      position: relative;
+      display: inline-block;
+      width: 48px;
+      height: 26px;
+    }
+
+    .switch input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+
+    .slider {
+      position: absolute;
+      cursor: pointer;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background-color: #e5e7eb;
+      transition: .3s;
+      border-radius: 30px;
+    }
+
+    .slider:before {
+      position: absolute;
+      content: "";
+      height: 20px;
+      width: 20px;
+      left: 3px;
+      bottom: 3px;
+      background-color: white;
+      transition: .3s;
+      border-radius: 50%;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+    }
+
+    input:checked + .slider {
+      background-color: var(--primary);
+    }
+
+    input:checked + .slider:before {
+      transform: translateX(22px);
+    }
+
+    /* Range Slider */
+    .range-box {
+      background: white;
+      border-radius: 14px;
+      padding: 16px;
+      border: 1px solid #e5e7eb;
+      margin-bottom: 12px;
+    }
+
+    .range-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 14px;
+    }
+
+    .custom-range {
+      width: 100%;
+      accent-color: var(--warning);
+      cursor: pointer;
+    }
+
+    /* Form Fields */
+    .form-group {
+      margin-bottom: 14px;
+    }
+
+    .form-group label {
+      display: block;
+      font-size: 0.8rem;
+      font-weight: 600;
+      margin-bottom: 6px;
+      color: var(--text-main);
+    }
+
+    .form-group input {
+      width: 100%;
+      padding: 12px;
+      border: 1px solid #d1d5db;
+      border-radius: 10px;
+      font-size: 0.9rem;
+      outline: none;
+      transition: border 0.2s;
+    }
+
+    .form-group input:focus {
+      border-color: var(--primary);
+    }
+
+    .btn-save {
+      width: 100%;
+      background: var(--primary);
+      color: white;
+      border: none;
+      padding: 14px;
+      border-radius: 10px;
+      font-weight: 600;
+      font-size: 0.95rem;
+      cursor: pointer;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .btn-save:hover {
+      background: var(--primary-dark);
+    }
+
+    /* Bottom Navigation */
+    nav {
+      position: absolute;
+      bottom: 0;
+      width: 100%;
+      background: white;
+      border-top: 1px solid #e5e7eb;
+      display: flex;
+      justify-content: space-around;
+      padding: 8px 0;
+    }
+
+    .nav-item {
+      background: none;
+      border: none;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      color: var(--text-muted);
+      cursor: pointer;
+      padding: 6px 14px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      transition: color 0.2s;
+    }
+
+    .nav-item i {
+      font-size: 1.15rem;
+    }
+
+    .nav-item.active {
+      color: var(--primary);
+    }
+  </style>
+</head>
+<body>
+
+  <div class="app-container">
+    <!-- Header -->
+    <header>
+      <div class="header-info">
+        <h1 id="appDeviceName">Smart Garden</h1>
+        <div class="header-status">
+          <span class="status-dot" id="statusDot"></span>
+          <span id="statusText">Disconnected</span>
+        </div>
+      </div>
+      <button class="refresh-btn" onclick="fetchTelemetry()" title="Refresh telemetry">
+        <i class="fa-solid fa-rotate"></i>
+      </button>
+    </header>
+
+    <!-- Main Screens -->
+    <main>
+      <!-- 1. DASHBOARD TAB -->
+      <section id="tab-dashboard" class="tab-view active">
+        <!-- High Temp Warning Banner -->
+        <div class="alert-banner" id="tempAlert">
+          <i class="fa-solid fa-triangle-exclamation" style="font-size: 1.2rem;"></i>
+          <span id="tempAlertText">High Soil Temperature Detected!</span>
+        </div>
+
+        <!-- Solar & Light Summary -->
+        <div class="overview-card">
+          <div class="overview-item">
+            <div class="icon-badge amber"><i class="fa-solid fa-solar-panel"></i></div>
+            <div>
+              <p style="font-size: 0.75rem; color: var(--text-muted);">Solar Tracker</p>
+              <h4 id="quickSolar" style="font-size: 0.95rem;">90° Tilt</h4>
+            </div>
+          </div>
+          <div style="height: 30px; width: 1px; background: #e5e7eb;"></div>
+          <div class="overview-item">
+            <div class="icon-badge orange"><i class="fa-solid fa-lightbulb"></i></div>
+            <div>
+              <p style="font-size: 0.75rem; color: var(--text-muted);">LED Lights</p>
+              <h4 id="quickLed" style="font-size: 0.95rem;">Off</h4>
+            </div>
+          </div>
+        </div>
+
+        <!-- 4 Metric Cards -->
+        <div class="metrics-grid">
+          <!-- Soil Moisture V0 -->
+          <div class="metric-card">
+            <div class="metric-header">
+              <span>Soil Moisture (V0)</span>
+              <i class="fa-solid fa-droplet" style="color: #0d9488;"></i>
+            </div>
+            <div class="metric-value" id="valMoisture">--%</div>
+            <div class="progress-track">
+              <div class="progress-fill" id="barMoisture" style="background-color: #0d9488;"></div>
+            </div>
+          </div>
+
+          <!-- Water Tank V1 -->
+          <div class="metric-card">
+            <div class="metric-header">
+              <span>Water Tank (V1)</span>
+              <i class="fa-solid fa-water" style="color: #0284c7;"></i>
+            </div>
+            <div class="metric-value" id="valTank">--%</div>
+            <div class="progress-track">
+              <div class="progress-fill" id="barTank" style="background-color: #0284c7;"></div>
+            </div>
+          </div>
+
+          <!-- Soil Temperature V2 -->
+          <div class="metric-card">
+            <div class="metric-header">
+              <span>Soil Temp (V2)</span>
+              <i class="fa-solid fa-temperature-half" id="tempIcon" style="color: #f59e0b;"></i>
+            </div>
+            <div class="metric-value" id="valTemp">--°C</div>
+            <div class="progress-track">
+              <div class="progress-fill" id="barTemp" style="background-color: #f59e0b;"></div>
+            </div>
+          </div>
+
+          <!-- Ambient Light V3 -->
+          <div class="metric-card">
+            <div class="metric-header">
+              <span>Light (V3)</span>
+              <i class="fa-solid fa-sun" style="color: #d97706;"></i>
+            </div>
+            <div class="metric-value" id="valLight">-- Lux</div>
+            <div class="progress-track">
+              <div class="progress-fill" id="barLight" style="background-color: #d97706;"></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 2. CONTROLS TAB -->
+      <section id="tab-controls" class="tab-view">
+        <!-- Pump 1 (V4) -->
+        <div class="control-card">
+          <div class="control-info">
+            <div class="icon-badge teal"><i class="fa-solid fa-faucet-drip"></i></div>
+            <div class="control-titles">
+              <h3>Water Pump 1 (V4)</h3>
+              <p>Primary drip irrigation</p>
+            </div>
+          </div>
+          <label class="switch">
+            <input type="checkbox" id="switchPump1" onchange="togglePin('v4', this.checked)">
+            <span class="slider"></span>
+          </label>
+        </div>
+
+        <!-- Pump 2 (V5) -->
+        <div class="control-card">
+          <div class="control-info">
+            <div class="icon-badge blue"><i class="fa-solid fa-spray-can-sparkles"></i></div>
+            <div class="control-titles">
+              <h3>Water Pump 2 (V5)</h3>
+              <p>Misting & reservoir circulation</p>
+            </div>
+          </div>
+          <label class="switch">
+            <input type="checkbox" id="switchPump2" onchange="togglePin('v5', this.checked)">
+            <span class="slider"></span>
+          </label>
+        </div>
+
+        <!-- Grow Light (V6) -->
+        <div class="control-card">
+          <div class="control-info">
+            <div class="icon-badge orange"><i class="fa-solid fa-lightbulb"></i></div>
+            <div class="control-titles">
+              <h3>Grow Lights (V6)</h3>
+              <p>Full spectrum plant illumination</p>
+            </div>
+          </div>
+          <label class="switch">
+            <input type="checkbox" id="switchLed" onchange="togglePin('v6', this.checked)">
+            <span class="slider"></span>
+          </label>
+        </div>
+
+        <!-- Solar Tracking Slider (V7) -->
+        <div class="range-box">
+          <div class="range-header">
+            <div style="display: flex; align-items: center; gap: 10px;">
+              <div class="icon-badge amber" style="width: 34px; height: 34px; font-size: 0.9rem;">
+                <i class="fa-solid fa-solar-panel"></i>
+              </div>
+              <div>
+                <h4 style="font-size: 0.85rem;">Solar Angle (V7)</h4>
+                <p style="font-size: 0.7rem; color: var(--text-muted);">Adjust tilt (0° - 180°)</p>
+              </div>
+            </div>
+            <span id="sliderAngleText" style="font-weight: 700; color: #d97706;">90°</span>
+          </div>
+          <input type="range" min="0" max="180" value="90" class="custom-range" id="sliderSolar" 
+                 oninput="document.getElementById('sliderAngleText').innerText = this.value + '°'"
+                 onchange="updateBlynkPin('v7', this.value)">
+        </div>
+      </section>
+
+      <!-- 3. SETTINGS TAB -->
+      <section id="tab-settings" class="tab-view">
+        <div style="background: white; border-radius: 14px; padding: 18px; border: 1px solid #e5e7eb;">
+          <h2 style="font-size: 1rem; margin-bottom: 16px;">Blynk IoT Configuration</h2>
+          
+          <div class="form-group">
+            <label>Device Nickname</label>
+            <input type="text" id="inputDeviceName" placeholder="e.g. My Balcony Garden">
+          </div>
+
+          <div class="form-group">
+            <label>Template ID</label>
+            <input type="text" id="inputTemplateId" placeholder="e.g. TMPLxxxxxx">
+          </div>
+
+          <div class="form-group">
+            <label>Blynk Auth Token</label>
+            <input type="password" id="inputAuthToken" placeholder="Paste your Blynk token here">
+          </div>
+
+          <button class="btn-save" onclick="saveSettings()">
+            <i class="fa-solid fa-floppy-disk"></i> Save & Connect
+          </button>
+        </div>
+      </section>
+    </main>
+
+    <!-- Bottom Navigation Tabs -->
+    <nav>
+      <button class="nav-item active" onclick="switchTab('dashboard')">
+        <i class="fa-solid fa-chart-pie"></i>
+        <span>Dashboard</span>
+      </button>
+      <button class="nav-item" onclick="switchTab('controls')">
+        <i class="fa-solid fa-sliders"></i>
+        <span>Controls</span>
+      </button>
+      <button class="nav-item" onclick="switchTab('settings')">
+        <i class="fa-solid fa-gear"></i>
+        <span>Settings</span>
+      </button>
+    </nav>
+  </div>
+
+  <script>
+    // State
+    const BLYNK_BASE = 'https://blynk.cloud/external/api';
+    let config = {
+      token: localStorage.getItem('blynk_token') || '',
+      template: localStorage.getItem('blynk_template') || '',
+      deviceName: localStorage.getItem('blynk_name') || 'Smart Garden'
+    };
+
+    // Initialize UI on load
+    window.addEventListener('DOMContentLoaded', () => {
+      document.getElementById('inputAuthToken').value = config.token;
+      document.getElementById('inputTemplateId').value = config.template;
+      document.getElementById('inputDeviceName').value = config.deviceName;
+      document.getElementById('appDeviceName').innerText = config.deviceName;
+
+      if (config.token) {
+        checkHardwareConnection();
+        fetchTelemetry();
+        setInterval(fetchTelemetry, 4000); // Poll every 4 seconds
+      } else {
+        switchTab('settings');
+      }
+    });
+
+    // Tab Navigation
+    function switchTab(tabName) {
+      document.querySelectorAll('.tab-view').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
+
+      document.getElementById(`tab-${tabName}`).classList.add('active');
+      const idx = tabName === 'dashboard' ? 0 : tabName === 'controls' ? 1 : 2;
+      document.querySelectorAll('.nav-item')[idx].classList.add('active');
+    }
+
+    // Save Settings
+    function saveSettings() {
+      config.token = document.getElementById('inputAuthToken').value.trim();
+      config.template = document.getElementById('inputTemplateId').value.trim();
+      config.deviceName = document.getElementById('inputDeviceName').value.trim() || 'Smart Garden';
+
+      localStorage.setItem('blynk_token', config.token);
+      localStorage.setItem('blynk_template', config.template);
+      localStorage.setItem('blynk_name', config.deviceName);
+
+      document.getElementById('appDeviceName').innerText = config.deviceName;
+      alert('Settings saved successfully!');
+      
+      checkHardwareConnection();
+      fetchTelemetry();
+      switchTab('dashboard');
+    }
+
+    // Check Hardware Connection
+    async function checkHardwareConnection() {
+      if (!config.token) return;
+      try {
+        const res = await fetch(`${BLYNK_BASE}/isHardwareConnected?token=${config.token}`);
+        const isOnline = (await res.text()).trim().toLowerCase() === 'true';
+        updateStatus(isOnline);
+      } catch (err) {
+        updateStatus(false);
+      }
+    }
+
+    function updateStatus(isOnline) {
+      const dot = document.getElementById('statusDot');
+      const txt = document.getElementById('statusText');
+      if (isOnline) {
+        dot.className = 'status-dot online';
+        txt.innerText = 'Online';
+      } else {
+        dot.className = 'status-dot';
+        txt.innerText = 'Offline';
+      }
+    }
+
+    // Fetch Telemetry Pins (V0 to V7)
+    async function fetchTelemetry() {
+      if (!config.token) return;
+
+      try {
+        const [v0, v1, v2, v3, v4, v5, v6, v7] = await Promise.all([
+          getPin('v0'), getPin('v1'), getPin('v2'), getPin('v3'),
+          getPin('v4'), getPin('v5'), getPin('v6'), getPin('v7')
+        ]);
+
+        updateStatus(true);
+
+        // V0: Moisture
+        if (v0 !== null) {
+          const val = parseFloat(v0) || 0;
+          document.getElementById('valMoisture').innerText = `${val.toFixed(1)}%`;
+          document.getElementById('barMoisture').style.width = `${Math.min(100, Math.max(0, val))}%`;
+        }
+
+        // V1: Water Tank
+        if (v1 !== null) {
+          const val = parseFloat(v1) || 0;
+          document.getElementById('valTank').innerText = `${val.toFixed(1)}%`;
+          document.getElementById('barTank').style.width = `${Math.min(100, Math.max(0, val))}%`;
+        }
+
+        // V2: Soil Temp + Warning alert (> 26°C)
+        if (v2 !== null) {
+          const temp = parseFloat(v2) || 0;
+          document.getElementById('valTemp').innerText = `${temp.toFixed(1)}°C`;
+          document.getElementById('barTemp').style.width = `${Math.min(100, Math.max(0, (temp / 50) * 100))}%`;
+
+          const alertBox = document.getElementById('tempAlert');
+          const tempIcon = document.getElementById('tempIcon');
+          if (temp > 26) {
+            alertBox.style.display = 'flex';
+            document.getElementById('tempAlertText').innerText = `High Soil Temp (${temp.toFixed(1)}°C)! Roots may experience stress.`;
+            tempIcon.style.color = '#ef4444';
+          } else {
+            alertBox.style.display = 'none';
+            tempIcon.style.color = '#f59e0b';
+          }
+        }
+
+        // V3: Ambient Light
+        if (v3 !== null) {
+          const light = parseInt(v3) || 0;
+          document.getElementById('valLight').innerText = `${light} Lux`;
+          document.getElementById('barLight').style.width = `${Math.min(100, (light / 1024) * 100)}%`;
+        }
+
+        // V4: Pump 1
+        if (v4 !== null) document.getElementById('switchPump1').checked = (v4 == '1');
+
+        // V5: Pump 2
+        if (v5 !== null) document.getElementById('switchPump2').checked = (v5 == '1');
+
+        // V6: LED Grow
+        if (v6 !== null) {
+          const isOn = (v6 == '1');
+          document.getElementById('switchLed').checked = isOn;
+          document.getElementById('quickLed').innerText = isOn ? 'Active' : 'Off';
+        }
+
+        // V7: Solar Angle
+        if (v7 !== null) {
+          const angle = parseInt(v7) || 90;
+          document.getElementById('sliderSolar').value = angle;
+          document.getElementById('sliderAngleText').innerText = `${angle}°`;
+          document.getElementById('quickSolar').innerText = `${angle}° Tilt`;
+        }
+
+      } catch (err) {
+        updateStatus(false);
+      }
+    }
+
+    async function getPin(pin) {
+      try {
+        const res = await fetch(`${BLYNK_BASE}/get?token=${config.token}&${pin}`);
+        if (res.ok) return await res.text();
+      } catch (_) {}
+      return null;
+    }
+
+    function togglePin(pin, isChecked) {
+      updateBlynkPin(pin, isChecked ? 1 : 0);
+    }
+
+    async function updateBlynkPin(pin, value) {
+      if (!config.token) {
+        alert('Please save your Blynk Auth Token first in Settings.');
+        return;
+      }
+      try {
+        await fetch(`${BLYNK_BASE}/update?token=${config.token}&${pin}=${value}`);
+      } catch (e) {
+        console.error('Failed to update pin', e);
+      }
+    }
+  </script>
+</body>
+</html>
